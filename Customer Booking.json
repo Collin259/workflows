@@ -1,0 +1,294 @@
+{
+  "name": "Customer Booking",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi there! 👋\nMy name is Rachel. How can I assist you today?",
+        "options": {
+          "title": "Bella Vista Support",
+          "customCss": ":root {\n  /* =========================\n     BRAND COLORS (Big Mamma Style)\n  ========================== */\n\n  --chat--color-primary: #5a1e1e;             /* deep wine red */\n  --chat--color-primary-shade-50: #4a1818;\n  --chat--color-primary-shade-100: #3a1212;\n\n  --chat--color-secondary: #7a2e2e;           /* softer burgundy */\n  --chat--color-secondary-shade-50: #622525;\n\n  --chat--color-white: #ffffff;\n\n  --chat--color-light: #f4efe7;               /* warm cream background */\n  --chat--color-light-shade-50: #e8dfd4;\n  --chat--color-light-shade-100: #d8cec1;\n\n  --chat--color-medium: #c9bfb3;\n  --chat--color-dark: #2c1a14;                /* espresso brown */\n  --chat--color-disabled: #d8cec1;\n  --chat--color-typing: #5c4a42;\n\n  /* =========================\n     LAYOUT\n  ========================== */\n\n  --chat--spacing: 1.2rem;\n  --chat--border-radius: 14px;\n  --chat--transition-duration: 0.2s;\n\n  --chat--font-family: \"Playfair Display\", Georgia, serif;\n\n  /* =========================\n     WINDOW SIZE (More Premium)\n  ========================== */\n\n  --chat--window--width: 420px;\n  --chat--window--height: 680px;\n  --chat--window--bottom: 2rem;\n  --chat--window--right: 2rem;\n  --chat--window--z-index: 9999;\n  --chat--window--border: 1px solid #e8dfd4;\n  --chat--window--border-radius: 18px;\n  --chat--window--margin-bottom: var(--chat--spacing);\n\n  /* =========================\n     HEADER\n  ========================== */\n\n  --chat--header--padding: 1.4rem;\n  --chat--header--background: var(--chat--color-dark);\n  --chat--header--color: #f4efe7;\n\n  --chat--heading--font-size: 1.6rem;\n  --chat--subtitle--font-size: 0.95rem;\n  --chat--subtitle--line-height: 1.6;\n\n  /* =========================\n     MESSAGES\n  ========================== */\n\n  --chat--message--font-size: 0.95rem;\n  --chat--message--padding: 1rem 1.2rem;\n  --chat--message--border-radius: 18px;\n  --chat--message-line-height: 1.6;\n  --chat--message--margin-bottom: 1rem;\n\n  /* Bot message (cream card look) */\n  --chat--message--bot--background: #ffffff;\n  --chat--message--bot--color: var(--chat--color-dark);\n  --chat--message--bot--border: 1px solid #e8dfd4;\n\n  /* User message (wine bubble) */\n  --chat--message--user--background: var(--chat--color-primary);\n  --chat--message--user--color: #ffffff;\n  --chat--message--user--border: none;\n\n  --chat--messages-list--padding: 1.5rem;\n\n  /* =========================\n     TOGGLE BUTTON (Floating)\n  ========================== */\n\n  --chat--toggle--size: 70px;\n  --chat--toggle--border-radius: 50%;\n  --chat--toggle--background: var(--chat--color-primary);\n  --chat--toggle--hover--background: var(--chat--color-primary-shade-50);\n  --chat--toggle--active--background: var(--chat--color-primary-shade-100);\n  --chat--toggle--color: #ffffff;\n\n  /* =========================\n     INPUT AREA\n  ========================== */\n\n  --chat--textarea--height: 60px;\n  --chat--textarea--max-height: 20rem;\n\n  --chat--input--padding: 1rem;\n  --chat--input--background: #ffffff;\n  --chat--input--border: none;\n  --chat--input--border-radius: 0;\n  --chat--input--text-color: var(--chat--color-dark);\n\n  /* =========================\n     BUTTONS\n  ========================== */\n\n  --chat--button--background: var(--chat--color-primary);\n  --chat--button--color: #ffffff;\n  --chat--button--border-radius: 20px;\n\n  --chat--button--hover--background: var(--chat--color-primary-shade-50);\n\n  /* =========================\n     BODY + FOOTER\n  ========================== */\n\n  --chat--body--background: var(--chat--color-light);\n  --chat--footer--background: #f4efe7;\n  --chat--footer--color: var(--chat--color-dark);\n}\n\n\n/* Wider chat bubbles for better readability */\n.chat-message {\n  max-width: 75%;\n}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "22e33e6f-92ff-4d63-921c-5eb0839d6840",
+      "name": "When chat message received",
+      "webhookId": "a87e20ce-c3d2-4754-91ff-dc6412186b93"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=*Role*\n\nYour name is Rachel, a customer support Agent for an Italian restaurant called Bella Vista.\nYou are responsable for providing information about restaurant using the knowledge base system.\nPlease ensure your communication style is friendly and to the point.\n\n*Tools*\n\nWhen a customer wats to make a booking, follow this steps.\nCollect essecial details - cutomer name, email address, party size, refered date and time and any special request they may have. Make sure you enumerate each details in different lines.\nLet the cutomer know their booking request has been submitted to the restaurant and they will recieve a confirmation shortly.\n\nWhen a customer wants to speak with the person.\n\nGet their name, email and phone number.\nUse the Human Support tool.\nTell them the request was submitted and staff will contact the soon\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "521c45f6-336e-46c6-916e-5f69f35a932f",
+      "name": "Rachel"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -32,
+        240
+      ],
+      "id": "be19c670-32fb-49f1-8526-dc0ed80bc855",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "BIHhzfStt51fvxGk",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        384
+      ],
+      "id": "783069c6-17e9-4b37-96e2-f3e95a75b070",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "BIHhzfStt51fvxGk",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "kngdigital9@gmail.com",
+        "subject": "New Booking",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        576,
+        240
+      ],
+      "id": "4d49192d-2a7d-40a8-b559-196ada0bf2dc",
+      "name": "Make Booking",
+      "webhookId": "17e63681-5ac8-4cc5-b295-fc6b48bd8850",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Luvaz0gehon1NJnJ",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "collinchimene11@gmail.com",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        736,
+        240
+      ],
+      "id": "925f61b8-98c7-47b6-bfc2-8b3642ac010e",
+      "name": "Human Support",
+      "webhookId": "ee1a568c-bbbd-4bdb-96b6-a604bb827723",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Luvaz0gehon1NJnJ",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        128,
+        240
+      ],
+      "id": "0cf03dc3-1f85-4dc9-8b6c-bfdec119bce9",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "HSawU61jGl0vUI5f",
+          "name": "Tutorial"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Use this tool to fetch documents related to the restaurant knowledge base.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        288,
+        240
+      ],
+      "id": "fe1a01a6-1d08-4967-a12c-a7b0d29ac99b",
+      "name": "Postgres PGVector Store",
+      "credentials": {
+        "postgres": {
+          "id": "ewJMTlIZZqpc1ZBA",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        384,
+        512
+      ],
+      "id": "e007903f-25ee-4f7a-a6fd-3b85fd3a3b0b",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "content": "## I'm a note \n**Improve on taking this to WhatsApp Business"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        688,
+        16
+      ],
+      "id": "707cbf74-4f5e-4480-8d18-139edfa79045",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Rachel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Rachel",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Postgres PGVector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Make Booking": {
+      "ai_tool": [
+        [
+          {
+            "node": "Rachel",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Human Support": {
+      "ai_tool": [
+        [
+          {
+            "node": "Rachel",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Rachel",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres PGVector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "Rachel",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ce2366ad-8a49-4af2-85ef-7c733438fea3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "22c3607cee35c6f35f541d681b889407aa40f3a1791e0b9fac86715a30318878"
+  },
+  "id": "0bKja6gW320DEmzzrfYlE",
+  "tags": []
+}
