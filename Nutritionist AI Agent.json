@@ -1,0 +1,1085 @@
+{
+  "name": "Nutritionist AI Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6d259b84-f576-4fd1-be5e-755c0e2bc342",
+      "name": "Telegram Trigger",
+      "webhookId": "88bdb37f-644a-44ab-912e-f458d7e61371",
+      "credentials": {
+        "telegramApi": {
+          "id": "zocp5wMKEvPROnXo",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "f0dceff0-d026-4c04-a11d-0019f0e27f2f"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "bf3ebb64-0aff-43cb-9cc6-f8bde81b20f3",
+                    "leftValue": "={{ $json.message.voice.file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Voice"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fe38b47f-f79f-43b1-9d59-7a1d43b60f90",
+                    "leftValue": "={{ $json.message.photo[0].file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Image"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        192,
+        -16
+      ],
+      "id": "9ace6280-6637-4f40-9afa-c31f1eb96224",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.photo[0].file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        368
+      ],
+      "id": "951ba8d7-3b4d-446b-8ccf-c1f6276753e5",
+      "name": "Get a file",
+      "webhookId": "3cfcdb12-a2b0-4130-8b2b-697ac3e799e2",
+      "credentials": {
+        "telegramApi": {
+          "id": "zocp5wMKEvPROnXo",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "text": "=You are a professional nutrition analyst.\nYour goal is to Analyze this food photo for each visible item and output a structured JSON with clear calorie and macro estimates.\nCORE FUNCTIONALITY\n• When shown a food image, identify each item and its main components (protein, carb, fat, etc.)\n• Assume a standard reference (e.g. 26 cm dinner plate, 250 ml cup, standard fork) for scale\n* Note if it looks like a restaurant-prepared dish—if so, assume extra cooking fat: sauté or sauce fat up by ~1 Tbsp (14 g) per portion\n* Estimate portion sizes in grams. Use reference cues in the image (cups, standard glass size, bread size, common utensils) to scale portions.\n* Make assumptions realistic. Prefer common serving sizes.\n• List any assumptions (shape, density, coverage %) you use to estimate size\n• Estimate calories & macros per item using trusted databases (USDA FoodData Central, European equivalents), adjusting for added restaurant fat\n• Note visible cooking methods or add-ins (oil, sauce, butter)\n• Calculate calories for each item, giving a plausible range\n• Sum to a total calories range\nJSON OUTPUT SCHEMA\n{\n\"overview\": \"Brief sentence about the full plate or spread\",\n\"short_name\": \"burger with fries\",\n\"items\": [\n{\n\"name\": \"Item name\"\n,\n\"type\": \"protein | carb | fat | beverage | etc.\"\n,\n\"portion_size\": \"e.g. 1 cup, 2 slices\",\n\"cooking_method\": \"if obvious\",\n\"macros_g\": {\n\"protein\": 0,\n\"carbs\": 0,\n\"fat\": 0\n},\n\"calories_kcal\": {\n\"low\": 0,\n\"high\": 0\n},\n\"assumptions\": \"Any guesses you made\"\n}\n],\n\"total_calories_kcal\": {\n\"low\": 0,\n\"high\": 0\n},\n\"total_macros\": {\n\"proteins\": {\n\"low\": 0,\n\"high\": 0\n},\n\"carbs\": {\n\"low\": 0,\n\"high\": 0\n},\n\"fat\": {\n\"low\": 0,\n\"high\": 0\n},\n},\n\"notes\": \"Any limitations or “estimate may vary” warnings\"\n}\nFOOD ANALYSIS GUIDELINES\n• Start with “overview” for the whole meal\n• For each item, fill every field in the schema\n• Give calories as a low–high range\n• Explain assumptions in the “assumptions” field\n• If unsure or image is unclear, add warnings in “notes”\n* If the user is writing Additional notes regarding the food, incorporate this (This is Voluntary):\n{{ $('Telegram Trigger').item.json.message.caption }}",
+        "imageUrls": "={{ $json.url }}",
+        "options": {
+          "maxTokens": 2000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        784,
+        256
+      ],
+      "id": "a5e05c6e-2055-4691-9554-33e81f7a002e",
+      "name": "Analyze image",
+      "credentials": {
+        "openAiApi": {
+          "id": "BIHhzfStt51fvxGk",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.cloudinary.com/v1_1/dokvttqtt/image/upload",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "upload_preset",
+              "value": "testing_automation"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        592,
+        256
+      ],
+      "id": "dd1dada5-7988-4932-8bf7-aac2d725bba3",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "name": "={{ $now.format('yyyy-MM-dd HH:mm') }}.png",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1KNo9Fxsp-dKiGgW804_JmspdZ59E_yOh",
+          "mode": "list",
+          "cachedResultName": "December",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1KNo9Fxsp-dKiGgW804_JmspdZ59E_yOh"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        592,
+        480
+      ],
+      "id": "1127971e-f006-4af1-ba83-228ada41fa84",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "bUW6ybsdcWntnKHm",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1248,
+        368
+      ],
+      "id": "6a147613-fa82-47d7-a985-b994f9ad790f",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "304780d0-d1bf-4808-bf5e-1f40dc634757",
+              "name": "text",
+              "value": "={{\n  JSON.stringify(\n    JSON.parse(\n      $json['0'].content[0].text\n        .replace(/```(?:json)?\\s*/g, '')\n        .replace(/```/g, '')\n        .trim()\n    ),\n    null,\n    2 // pretty-print with 2-space indent\n  )\n}}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        976,
+        256
+      ],
+      "id": "64cd307d-102c-4f53-9a22-af2b75301a2b",
+      "name": "Calories & Macros"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "304780d0-d1bf-4808-bf5e-1f40dc634757",
+              "name": "image_url",
+              "value": "={{ $json.webViewLink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        976,
+        480
+      ],
+      "id": "b56d9a16-f82d-4930-87fa-3ebe77ae6009",
+      "name": "Image Link"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ZXFh1Q-31y2I-PWCRCC3GPiA44IKvYHOmDD95CipLIo",
+          "mode": "list",
+          "cachedResultName": "Food Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZXFh1Q-31y2I-PWCRCC3GPiA44IKvYHOmDD95CipLIo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Food Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZXFh1Q-31y2I-PWCRCC3GPiA44IKvYHOmDD95CipLIo/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $('Telegram Trigger').item.json.message.from.first_name }}",
+            "Date": "={{ $now.format('yyyy-MM-dd') }}",
+            "Time": "={{ $now.format('HH:mm') }}",
+            "Food ": "={{ $json.text.short_name }}",
+            "Calories": "={{ ($json.text.items[0].calories_kcal.low +$json.text.items[0].calories_kcal.high)/2}} kcal",
+            "Proteins": "={{ ($json.text.total_macros.proteins.low + $json.text.total_macros.carbs.high)/2}}",
+            "Picture": "={{ $json.image_url }}",
+            "Carbs": "={{ ($json.text.total_macros.carbs.low + $json.text.total_macros.carbs.high)/2}}",
+            "Fat": "={{ ($json.text.total_macros.fat.low + $json.text.total_macros.fat.high)/2}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Food ",
+              "displayName": "Food ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Calories",
+              "displayName": "Calories",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Proteins",
+              "displayName": "Proteins",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Carbs",
+              "displayName": "Carbs",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fat",
+              "displayName": "Fat",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Picture",
+              "displayName": "Picture",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1408,
+        368
+      ],
+      "id": "c9d89b5f-c1ce-4e71-b1e7-d6e8cd909f4b",
+      "name": "Food Data",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BkZ8phs3ZxI244XN",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1696,
+        560
+      ],
+      "id": "013503dd-e6e0-46dc-a861-770d29a68247",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "BIHhzfStt51fvxGk",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2128,
+        368
+      ],
+      "id": "b8a572bb-baef-4794-9103-55e09ec4d2b0",
+      "name": "Send a text message",
+      "webhookId": "314c8839-a4a4-4ae6-a7d7-ddf6fb65a15d",
+      "credentials": {
+        "telegramApi": {
+          "id": "zocp5wMKEvPROnXo",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a nutrition assistant helping the user track and understand their meals.\nYou are given information about food, and your job is to format it like this:\nCalories: *XXX kcal*\nProteins: *XXg*\nCarbs: *XXg*\nFat: *XXg*\nMeal: [Meal name]\nThen give a **maximum of 2 short sentences (≤120 characters total)** as coach feedback, based on the food and user goal.\nHere is the food info (no need to repeat it):\n{{ JSON.stringify($('Merge').item.json.text) }}\nThe user’s goal is: **{{ $json.Goal }}**\n• Daily target: **{{ $json['Daily Goal'] }} kcal**\n• Target deficit: **{{ $json['Target Deficit'] }} kcal**\n• Maintenance calories: **{{ $json.Mantain }} kcal**\n---\n**Coach Feedback Rules (choose ONE matching block):**\n1. **Goal-aligned meal (good macros + fits goal)**\n→ Praise and urge consistency.\nExample: _Great choice! Keep it up and stay consistent with your goal._\n2. **Restaurant or fast food meal**\n→ Comment on goal fit + hidden extras.\nExample: _Fits your goal, but beware of oils and sauces. Try cooking it yourself next time!_\n3. **Unhealthy or very high-calorie meal**\n→ Be firm, call it out, and remind how to stay on track.\nExample: _This is not aligned with your goal. Refocus and get back on track now._\n---\n**Unhealthy food warning flags (if relevant):**\n- High trans/saturated fats → fried snacks, pastries, processed meats\n- Excess sugars → candy, soda, sweet cereals\n- Refined carbs → white bread, white rice, pastries\n- High sodium → canned, processed, cured foods\n- Low nutrient density → empty-calorie foods\nUse this reference when deciding if the food is unhealthy.\n---\nDO NOT explain or add anything else. Just:\n1. Formatted nutrition + meal name\n2. Max 2 short coach lines (≤120 chars total)\n3. No hashtags, no emojis, no extra commentary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1776,
+        368
+      ],
+      "id": "41ae60e5-d42c-4592-b4be-fa53ec56e48a",
+      "name": "Coach AI Agent"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "58807e9a-f9a3-4f5e-b478-6492a84af353",
+              "name": "text",
+              "value": "={{ $json.message?.text ?? $json.text ?? '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        944,
+        -32
+      ],
+      "id": "71e12e5b-4555-4e76-a5f3-3f4289e2a931",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        480,
+        96
+      ],
+      "id": "8a2d6770-0e0b-46e5-a498-de2473535651",
+      "name": "Get a file1",
+      "webhookId": "19ebdf08-3733-4743-9411-0c548a698357",
+      "credentials": {
+        "telegramApi": {
+          "id": "zocp5wMKEvPROnXo",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        688,
+        96
+      ],
+      "id": "c3f61d2a-34c0-4d29-b592-70fbb69cd800",
+      "name": "Transcribe a recording",
+      "credentials": {
+        "openAiApi": {
+          "id": "BIHhzfStt51fvxGk",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ZXFh1Q-31y2I-PWCRCC3GPiA44IKvYHOmDD95CipLIo",
+          "mode": "list",
+          "cachedResultName": "Food Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZXFh1Q-31y2I-PWCRCC3GPiA44IKvYHOmDD95CipLIo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Food Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZXFh1Q-31y2I-PWCRCC3GPiA44IKvYHOmDD95CipLIo/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Name",
+              "lookupValue": "={{ $('Telegram Trigger').item.json.message.from.first_name }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1232,
+        -160
+      ],
+      "id": "cb656551-a6ed-41ed-b6b4-b1d38b270fff",
+      "name": "Meal History",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BkZ8phs3ZxI244XN",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ZXFh1Q-31y2I-PWCRCC3GPiA44IKvYHOmDD95CipLIo",
+          "mode": "list",
+          "cachedResultName": "Food Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZXFh1Q-31y2I-PWCRCC3GPiA44IKvYHOmDD95CipLIo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 221064815,
+          "mode": "list",
+          "cachedResultName": "Goals",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZXFh1Q-31y2I-PWCRCC3GPiA44IKvYHOmDD95CipLIo/edit#gid=221064815"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Name",
+              "lookupValue": "={{ $('Telegram Trigger').item.json.message.from.first_name }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1360,
+        64
+      ],
+      "id": "627acbea-cb8d-4a05-9a29-8fc23691438a",
+      "name": "Goals",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BkZ8phs3ZxI244XN",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ZXFh1Q-31y2I-PWCRCC3GPiA44IKvYHOmDD95CipLIo",
+          "mode": "list",
+          "cachedResultName": "Food Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZXFh1Q-31y2I-PWCRCC3GPiA44IKvYHOmDD95CipLIo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 221064815,
+          "mode": "list",
+          "cachedResultName": "Goals",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZXFh1Q-31y2I-PWCRCC3GPiA44IKvYHOmDD95CipLIo/edit#gid=221064815"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Name",
+              "lookupValue": "={{ $('Telegram Trigger').item.json.message.from.first_name }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1568,
+        368
+      ],
+      "id": "cb95759a-d126-48a3-8145-24bb49ffd90c",
+      "name": "Goals1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "BkZ8phs3ZxI244XN",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1472,
+        -160
+      ],
+      "id": "d32ff632-3703-4601-b855-d621b5b25875",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1760,
+        -32
+      ],
+      "id": "3c3a1ed5-fcd6-499c-8f97-ea070ff67735",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a helpful nutrition assistant.\nYour task is to analyze the user’s food history from the last 7 days (or fewer if less available)\nand decide whether they can consume the requested food or drink while staying within their calorie goal.\nUser’s name: {{ $('Telegram Trigger').item.json.message.from.first_name }}\nRequest: {{ $('Edit Fields').item.json.text }}\nToday’s date: {{ $now }}\nUser’s goal: {{ $json.Goal }}\nDaily calorie goal: {{ $json['Daily Goal'] }} kcal\nHere is their food history:\n{{ JSON.stringify($('Aggregate').item.json.data, null, 2) }}\n---\nFollow these steps:\n1. Sum total calories consumed over the last 7 days (or y days if fewer meals).\n2. Multiply the daily goal by the number of days to get total allowed calories.\n3. Subtract consumed from allowed to get remaining allowed calories.\n4. Look up the calories per one standard serving of the requested item.\n- If it’s a **drink** (e.g. cocktail, beer, wine), calculate how many full servings the user can still consume within the remaining calories.\n- If it’s a **single-portion food** (e.g. pizza, burger with fries), assume one serving and check if it fits within remaining allowed calories.\n---\n**Formatting rules:**\n- Round all calorie numbers to the nearest hundred.\n- Write out numbers in words (e.g. *one thousand* instead of 1000).\n- Respond in simple, clear language (6th to 8th grade level).\n- Output must be one short sentence only.\n-Do not provide user's question in the response\n- Choose one of the following formats:\nIf allowed:\n“You have [X] calories left, so you can eat/drink {{ $('Edit Fields').item.json.text }} and maintain your last-y-day deficit.”\nIf not allowed:\n“You have [X] calories left, so you can't eat/drink {{ $('Edit Fields').item.json.text }} and maintain your last-y-day deficit.”\nNo extra explanation. No emojis. No additional tips.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1952,
+        -32
+      ],
+      "id": "8959bf14-66f1-40ea-81f5-1a08cb918d4c",
+      "name": "Coach2 Nutrition AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1904,
+        160
+      ],
+      "id": "785854b1-6fb8-435f-b847-d33bd74b87b0",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "BIHhzfStt51fvxGk",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        2080,
+        160
+      ],
+      "id": "617b4f74-dac5-4f1f-82c1-b96b7a4ebbbe",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2272,
+        -32
+      ],
+      "id": "bc6a0b04-9966-4fb9-836e-2ceb8de451bc",
+      "name": "Send a text message1",
+      "webhookId": "314c8839-a4a4-4ae6-a7d7-ddf6fb65a15d",
+      "credentials": {
+        "telegramApi": {
+          "id": "zocp5wMKEvPROnXo",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a file1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Analyze image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze image": {
+      "main": [
+        [
+          {
+            "node": "Calories & Macros",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Image Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Food Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calories & Macros": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Link": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Food Data": {
+      "main": [
+        [
+          {
+            "node": "Goals1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Coach AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Coach AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file1": {
+      "main": [
+        [
+          {
+            "node": "Transcribe a recording",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe a recording": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Meal History",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Goals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Goals1": {
+      "main": [
+        [
+          {
+            "node": "Coach AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meal History": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Goals": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Coach2 Nutrition AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Coach2 Nutrition AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Coach2 Nutrition AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Coach2 Nutrition AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "52e8282b-2a2f-4031-9469-e55f7f272039",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "22c3607cee35c6f35f541d681b889407aa40f3a1791e0b9fac86715a30318878"
+  },
+  "id": "IQsI1r-eIZx8jHA9oLvVr",
+  "tags": []
+}
