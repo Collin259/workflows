@@ -1,0 +1,261 @@
+{
+  "name": "Calendar AI Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "2ed39f65-1ac9-457f-a770-ed77beccb656",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        144,
+        208
+      ],
+      "id": "50d49958-e28f-4d6f-b5d1-a22e0eafe930",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "LJXEeXT1OMdh5evu",
+          "name": "OpenAI account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "collinchimene11@gmail.com",
+          "mode": "list",
+          "cachedResultName": "collinchimene11@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', `Use this tool to create a new event in Google Calendar. \nCall this when the user wants to schedule a meeting, \nappointment, reminder, or any calendar event. \nInput should include the event title, start time, and end time.`, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', `the time the user asks for the event to end`, 'string') }}",
+        "additionalFields": {
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', `the alender event`, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        304,
+        224
+      ],
+      "id": "88cef610-7271-4f54-88a9-0b049bd0b78e",
+      "name": "create an event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "KNOx2IH6kzGZI20e",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "collinchimene11@gmail.com",
+          "mode": "list",
+          "cachedResultName": "collinchimene11@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', `Use this tool to create a new event in Google Calendar. \nCall this when the user wants to schedule a meeting, \nappointment, reminder, or any calendar event. \nInput should include the event title, start time, and end time.`, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', `the time the user asks for the event to end`, 'string') }}",
+        "additionalFields": {
+          "attendees": [
+            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('attendees0_Attendees', ``, 'string') }}"
+          ],
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        576,
+        224
+      ],
+      "id": "0313c3f2-d8f5-4598-9c88-ea3f590dacf5",
+      "name": "Event with attendee",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "KNOx2IH6kzGZI20e",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query }}",
+        "options": {
+          "systemMessage": "=You are a calendar assistant with access to various tools to manage calendar-related tasks.\n\nThe current date and time is: {{ $now }}\n\nIMPORTANT:\nWhenever the user asks to:\n- set up an alarm\n- set a reminder\n- create an event\n- schedule a meeting\n- set an appointment\n- add something to a calendar\n- create a reminder\n- plan a call\n\nyou MUST use the appropriate calendar tool instead of replying normally.\n\nIf the user does not provide an end time:\n- default the event duration to 60 minutes.\n\nIf the user does not provide a date:\n- ask a follow-up question before creating the event.\n\nTOOLS:\n\nCreate Event\nUse this tool when NO attendee is involved.\n\nCreate Event with attendance\nUse this tool ONLY when attendees are included.\n\nGet Events\nUse this tool to retrieve scheduled events for a specific day and summarize them.\nExclude canceled events from the results.\n\nAlways extract:\n- event title\n- start time\n- end time\n- attendees if available\n\nDo not answer with plain text when a calendar action is required.\nAlways use a tool."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "817e2e38-5eda-45f3-a274-d4d27c15a186",
+      "name": "Calendar AI Agent"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "collinchimene11@gmail.com",
+          "mode": "list",
+          "cachedResultName": "collinchimene11@gmail.com"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        448,
+        256
+      ],
+      "id": "42bc720a-20ea-4830-9442-3f4609bff174",
+      "name": "Get many events in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "KNOx2IH6kzGZI20e",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5a6cc12c-ee28-43a6-9c6c-976b0580ade1",
+              "name": "response",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        560,
+        0
+      ],
+      "id": "21ad5b10-01db-49bc-b640-e7da6bb76692",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "query": "set up an alarm from 3 pm till 4 pm for a meeting"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Calendar AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Calendar AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create an event": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Event with attendee": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many events in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calendar AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "9ecc85bf-3024-4dd5-8f3a-2dd0088e3aac",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "22c3607cee35c6f35f541d681b889407aa40f3a1791e0b9fac86715a30318878"
+  },
+  "id": "CNuzWu37VHOrWK4g",
+  "tags": []
+}
